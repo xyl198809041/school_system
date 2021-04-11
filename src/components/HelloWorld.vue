@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
+    <h1>{{ test_msg }}</h1>
     <p>
       For a guide and recipes on how to configure / customize this project,<br>
       check out the
@@ -35,14 +35,18 @@
 
 <script lang="ts">
 import { Options, Vue } from 'vue-class-component';
-
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cv =require('../assets/opencv')
 @Options({
   props: {
     msg: String
   }
 })
 export default class HelloWorld extends Vue {
-  msg!: string
+  test_msg='1223';
+  created(): void {
+    console.log(cv)
+  }
 }
 </script>
 
