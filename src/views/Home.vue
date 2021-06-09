@@ -1,9 +1,9 @@
 <template>
   <div class="home">
     <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
-    <scan :is_scan="is_scan" :height="480" :width="720"></scan>
-    <button @click="start">开始</button>
+<!--    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>-->
+    <scan :is_scan="is_scan" ></scan>
+    <el-button @click="start" type="primary">开始</el-button>
   </div>
 </template>
 
@@ -22,6 +22,20 @@ export default class Home extends Vue {
   is_scan=false
   start():void{
     this.is_scan=!this.is_scan
+  }
+  created():void{
+    fetch(this.$store.state.base_url+'school_system/get_ShenFenZheng_by_ImgBase64',{
+      headers:{
+        'Content-Type': 'application/json',
+        'accept':'application/json'
+      },
+      method:'post',
+      body:JSON.stringify({
+        img_base64:'base64'
+      })
+    })
+        .then(r=>r.json())
+        .then(json=>console.log(json))
   }
 }
 </script>

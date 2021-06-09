@@ -2,7 +2,9 @@
   <div :style="{height:height+'px',width:width+'px'}">
     <video ref="v" autoplay :width="width" :height="height" style="position: absolute"></video>
     <canvas id="show" ref="show" :width="width" :height="height" style="position: absolute;z-index: 2"></canvas>
+    <canvas id="img_base64" ref="img_base64" hidden></canvas>
   </div>
+  <div>{{msg1}}</div>
 </template>
 
 <script lang="ts">
@@ -23,12 +25,14 @@ const cv =require('../assets/opencv.js')
   },
 })
 export default class Scan extends Vue {
-  msg1=0;
+  msg1='';
   height!:number;
   width!:number;
   face_scan:any;
   cap:any= null;
   is_scan!:boolean;
+  is_updating=false;
+  start_time=0;
   sleep(time:number):Promise<unknown>{
     return new Promise(resolve => setTimeout(resolve,time))
   }
@@ -53,6 +57,7 @@ export default class Scan extends Vue {
   }
   private start_show_face():void{
     let begin = Date.now();
+    let delay=0;
     if (this.is_scan) {
       const face_scan = toRaw(this.face_scan)
       if (toRaw(this.face_scan) === undefined) {
@@ -70,13 +75,32 @@ export default class Scan extends Vue {
           let face = faces.get(i);
           context.strokeRect(face.x, face.y, face.width, face.height);
         }
+        if (faces.size()>0 && !this.is_updating){
+          this.is_updating=true
+          this.start_time=begin
+          cv.imshow('img_base64',frame)
+          let base64:string= (this.$refs.img_base64 as any).toDataURL()
+          fetch(this.$store.state.base_url+`school_system/get_ShenFenZheng_by_ImgBase64`,{
+            headers:{'Content-Type': 'application/json'},
+            method:'post',
+            body:JSON.stringify({
+              img_base64:base64
+            })
+          })
+          .then(r=>r.json())
+          .then(json=>{
+            // console.log(json)
+            this.msg1=json
+            this.is_updating=false
+            console.log(Date.now() -this.start_time)
+          })
+        }
         context.fill()
         frame.delete()
         faces.delete()
-        this.msg1++
       }
     }
-    let delay = 1000/10 - (Date.now() - begin);
+    delay = 1000/10 - (Date.now() - begin)
     this.sleep(delay).then(this.start_show_face)
   }
   //内部函数
